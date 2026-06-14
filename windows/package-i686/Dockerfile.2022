@@ -58,8 +58,11 @@ RUN powershell -Command "\
 # Install Visual C++ redistributables
 RUN powershell -Command "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force; Set-PSRepository -Name PSGallery -InstallationPolicy Trusted; Install-Module -Name VcRedist -SkipPublisherCheck -Force -ErrorAction Stop"
 
-# Install AWS CLI
-RUN msiexec.exe /i "https://awscli.amazonaws.com/AWSCLIV2.msi" /quiet /qn && \
+# Install AWS CLI v2. Pinned (not the always-latest AWSCLIV2.msi) so the version
+# is reproducible and so this layer is not frozen by the build cache to a stale
+# release: it must be >= 2.19 for the `s3api put-object --if-none-match`
+# conditional writes the CI staging step relies on.
+RUN msiexec.exe /i "https://awscli.amazonaws.com/AWSCLIV2-2.30.0.msi" /quiet /qn && \
     setx /M PATH "%PATH%;C:\Program Files\Amazon\AWSCLIV2"
 
 # Install `TrustedSigning` powershell module
